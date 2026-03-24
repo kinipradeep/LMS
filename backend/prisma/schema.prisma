@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TRAINER
+  ADMIN
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+}
+
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+}
+
+model User {
+  id           String       @id @default(uuid())
+  name         String
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  role         UserRole     @default(STUDENT)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  enrollments  Enrollment[]
+  progress     Progress[]
+  quizResults  QuizResult[]
+  payments     Payment[]
+  courses      Course[]
+
+  @@map("users")
+}
+
+model Course {
+  id          String       @id @default(uuid())
+  title       String
+  slug        String       @unique
+  description String
+  price       Decimal      @db.Decimal(10, 2)
+  thumbnail   String?
+  published   Boolean      @default(false)
+  trainerId   String?      @map("trainer_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  trainer     User?        @relation(fields: [trainerId], references: [id], onDelete: SetNull)
+  modules     Module[]
+  enrollments Enrollment[]
+  quizzes     Quiz[]
+  payments    Payment[]
+
+  @@map("courses")
+}
+
+model Module {
+  id         String   @id @default(uuid())
+  courseId   String   @map("course_id")
+  title      String
+  orderIndex Int      @map("order_index")
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons    Lesson[]
+
+  @@map("modules")
+}
+
+model Lesson {
+  id         String     @id @default(uuid())
+  moduleId   String     @map("module_id")
+  title      String
+  videoUrl   String     @map("video_url")
+  content    String
+  orderIndex Int        @map("order_index")
+  dripDays   Int        @default(0) @map("drip_days")
+  module     Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress   Progress[]
+
+  @@map("lessons")
+}
+
+model Enrollment {
+  id         String           @id @default(uuid())
+  userId     String           @map("user_id")
+  courseId   String           @map("course_id")
+  status     EnrollmentStatus @default(ACTIVE)
+  enrolledAt DateTime         @default(now()) @map("enrolled_at")
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model Progress {
+  userId      String    @map("user_id")
+  lessonId    String    @map("lesson_id")
+  completed   Boolean   @default(false)
+  completedAt DateTime? @map("completed_at")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@id([userId, lessonId])
+  @@map("progress")
+}
+
+model Quiz {
+  id        String       @id @default(uuid())
+  courseId  String       @map("course_id")
+  title     String
+  duration  Int
+  course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions Question[]
+  results   QuizResult[]
+
+  @@map("quizzes")
+}
+
+model Question {
+  id            String @id @default(uuid())
+  quizId         String @map("quiz_id")
+  question       String
+  options        Json
+  correctAnswer  String @map("correct_answer")
+  explanation    String
+  domain         String
+  quiz           Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("questions")
+}
+
+model QuizResult {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  quizId      String   @map("quiz_id")
+  score       Int
+  completedAt DateTime @default(now()) @map("completed_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_results")
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  userId            String        @map("user_id")
+  courseId          String        @map("course_id")
+  amount            Decimal       @db.Decimal(10, 2)
+  status            PaymentStatus @default(CREATED)
+  razorpayOrderId   String?       @map("razorpay_order_id")
+  razorpayPaymentId String?       @map("razorpay_payment_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course            Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Page {
+  id        String  @id @default(uuid())
+  title     String
+  slug      String  @unique
+  content   Json
+  published Boolean @default(false)
+
+  @@map("pages")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  title     String
+  slug      String   @unique
+  content   Json
+  published Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("posts")
+}
+
+model AppConfig {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_config")
+}
