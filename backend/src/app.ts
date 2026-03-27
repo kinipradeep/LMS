@@ -15,6 +15,7 @@ app.use(express.json({
     (req as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(buf);
   }
 }));
+app.use(express.json());
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true });

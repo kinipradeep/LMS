@@ -53,6 +53,10 @@ export const lessonById = async (req: Request, res: Response) => {
   const allowed = await canAccessCourse(req.auth!.userId, req.auth!.role, lesson.module.courseId);
   if (!allowed) return res.status(403).json({ message: 'Enrollment required for this lesson' });
 
+    include: { module: { include: { course: true } } }
+  });
+
+  if (!lesson) return res.status(404).json({ message: 'Lesson not found' });
   return res.json(lesson);
 };
 

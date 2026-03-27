@@ -17,6 +17,9 @@ export default async function DashboardPage() {
     headers: { Authorization: `Bearer demo-token` }
   }).catch(() => []);
 
+export default async function DashboardPage() {
+  const courses = await api<Course[]>('/my-courses', { headers: { Authorization: `Bearer demo-token` } });
+
   return (
     <section>
       <h1 className="mb-5 text-2xl font-bold">My Courses</h1>

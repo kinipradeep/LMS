@@ -16,4 +16,5 @@ export const env = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
   claudeModel: process.env.CLAUDE_MODEL ?? 'claude-3-5-sonnet-latest',
   publicAppUrl: process.env.PUBLIC_APP_URL ?? 'http://localhost:3000'
+  claudeModel: process.env.CLAUDE_MODEL ?? 'claude-3-5-sonnet-latest'
 };
