@@ -10,6 +10,7 @@ export const signup = async (req: Request, res: Response) => {
 
   const passwordHash = await hashPassword(data.password);
   const user = await prisma.user.create({
+    data: { name: data.name, email: data.email, passwordHash, role: 'STUDENT' }
     data: { name: data.name, email: data.email, passwordHash, role: data.role ?? 'STUDENT' }
   });
 

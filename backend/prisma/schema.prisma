@@ -24,6 +24,11 @@ enum PaymentStatus {
   FAILED
 }
 
+enum CertificateStatus {
+  ISSUED
+  REVOKED
+}
+
 model User {
   id           String       @id @default(uuid())
   name         String
@@ -36,6 +41,7 @@ model User {
   quizResults  QuizResult[]
   payments     Payment[]
   courses      Course[]
+  certificates Certificate[]
 
   @@map("users")
 }
@@ -117,6 +123,7 @@ model Quiz {
   course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   questions Question[]
   results   QuizResult[]
+  certificates Certificate[]
 
   @@map("quizzes")
 }
@@ -142,6 +149,7 @@ model QuizResult {
   completedAt DateTime @default(now()) @map("completed_at")
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  certificate Certificate?
 
   @@map("quiz_results")
 }
@@ -188,4 +196,21 @@ model AppConfig {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("app_config")
+}
+
+model Certificate {
+  id               String            @id @default(uuid())
+  userId           String            @map("user_id")
+  quizResultId     String            @unique @map("quiz_result_id")
+  quizId           String            @map("quiz_id")
+  certificateNo    String            @unique @map("certificate_no")
+  verificationCode String            @unique @map("verification_code")
+  status           CertificateStatus @default(ISSUED)
+  issuedAt         DateTime          @default(now()) @map("issued_at")
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizResult       QuizResult        @relation(fields: [quizResultId], references: [id], onDelete: Cascade)
+  quiz             Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, quizId])
+  @@map("certificates")
 }

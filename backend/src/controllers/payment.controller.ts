@@ -40,6 +40,17 @@ export const paymentWebhook = async (req: Request, res: Response) => {
   const signature = req.headers['x-razorpay-signature'] as string | undefined;
   if (!signature) return res.status(400).json({ message: 'Missing signature' });
 
+  const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
+  if (!rawBody) return res.status(400).json({ message: 'Missing raw webhook body' });
+
+  const digest = crypto
+    .createHmac('sha256', env.razorpayWebhookSecret)
+    .update(rawBody)
+    .digest('hex');
+
+  const digestBuffer = Buffer.from(digest, 'utf8');
+  const signatureBuffer = Buffer.from(signature, 'utf8');
+  if (digestBuffer.length !== signatureBuffer.length || !crypto.timingSafeEqual(digestBuffer, signatureBuffer)) {
   const body = JSON.stringify(req.body);
   const digest = crypto
     .createHmac('sha256', env.razorpayWebhookSecret)

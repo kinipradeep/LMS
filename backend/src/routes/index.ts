@@ -9,6 +9,7 @@ import { adminCourses, adminUsers } from '../controllers/admin.controller.js';
 import { createCourse, publishCourse } from '../controllers/course-management.controller.js';
 import { getConfig, upsertConfig } from '../controllers/config.controller.js';
 import { generateQuizWithAI } from '../controllers/ai-quiz.controller.js';
+import { buildCertificate, getCertificateById, myCertificates, verifyCertificateByCode } from '../controllers/certificate.controller.js';
 
 export const router = Router();
 
@@ -28,6 +29,10 @@ router.post('/progress', requireAuth, updateProgress);
 
 router.get('/quizzes/:id', requireAuth, getQuiz);
 router.post('/quizzes/:id/submit', requireAuth, submitQuiz);
+router.post('/certificates/build', requireAuth, buildCertificate);
+router.get('/my-certificates', requireAuth, myCertificates);
+router.get('/certificates/:id', getCertificateById);
+router.get('/certificates/verify/:verificationCode', verifyCertificateByCode);
 
 router.post('/payments/create-order', requireAuth, createOrder);
 router.post('/payments/webhook', paymentWebhook);

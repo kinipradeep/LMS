@@ -10,6 +10,11 @@ export const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    (req as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(buf);
+  }
+}));
 app.use(express.json());
 
 app.get('/health', (_req, res) => {

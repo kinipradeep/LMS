@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const signupSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
+  password: z.string().min(8)
   password: z.string().min(8),
   role: z.enum(['STUDENT', 'TRAINER', 'ADMIN']).optional()
 });
@@ -51,4 +52,8 @@ export const aiQuizGenerateSchema = z.object({
   domain: z.string().min(2),
   questionCount: z.number().int().min(3).max(40),
   difficulty: z.enum(['easy', 'medium', 'hard']).default('medium')
+});
+
+export const buildCertificateSchema = z.object({
+  quizResultId: z.string().uuid()
 });
