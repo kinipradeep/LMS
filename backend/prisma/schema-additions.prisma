@@ -1,0 +1,88 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// ADD THESE FIELDS/MODELS TO YOUR EXISTING schema.prisma
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 1. Add to your existing User model:
+//
+//   avatarUrl        String?
+//   oauthProvider    OAuthProvider?
+//   oauthProviderId  String?
+//   passwordHash     String?        // make nullable for OAuth-only users
+
+// 2. Add this enum:
+
+enum OAuthProvider {
+  GOOGLE
+  MICROSOFT
+}
+
+// 3. Add CertificationTrack model — maps to real-world IT certifications
+
+model CertificationTrack {
+  id          String   @id @default(cuid())
+  code        String   @unique  // e.g. "CISSP", "CISM", "CRISC", "CCSP"
+  name        String            // e.g. "Certified Information Systems Security Professional"
+  body        String            // e.g. "ISC2", "ISACA"
+  description String
+  domains     CertDomain[]
+  courses     Course[]
+  createdAt   DateTime @default(now())
+}
+
+// 4. CertDomain — the official exam domains for each certification
+
+model CertDomain {
+  id          String             @id @default(cuid())
+  trackId     String
+  track       CertificationTrack @relation(fields: [trackId], references: [id])
+  number      Int                // Domain 1, 2, 3...
+  name        String             // e.g. "Security and Risk Management"
+  weightPct   Int                // Exam weighting % e.g. 16
+  description String
+  modules     Module[]
+  createdAt   DateTime           @default(now())
+}
+
+// 5. Add trackId and domainId to existing Course model:
+//
+//   trackId   String?
+//   track     CertificationTrack? @relation(fields: [trackId], references: [id])
+
+// 6. Add domainId to existing Module model:
+//
+//   domainId  String?
+//   domain    CertDomain? @relation(fields: [domainId], references: [id])
+
+// 7. PracticeExamSession — tracks timed exam attempts
+
+model PracticeExamSession {
+  id            String    @id @default(cuid())
+  userId        String
+  quizId        String
+  startedAt     DateTime  @default(now())
+  submittedAt   DateTime?
+  timeLimitSecs Int       @default(5400) // 90 min default
+  score         Float?
+  passed        Boolean?
+  answers       Json      // { questionId: selectedOptionIndex }
+  createdAt     DateTime  @default(now())
+}
+
+// 8. BlogPost — public blog / SEO articles
+
+model BlogPost {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  excerpt       String
+  content       String    @db.Text
+  coverImageUrl String?
+  authorId      String
+  published     Boolean   @default(false)
+  publishedAt   DateTime?
+  tags          String[]
+  metaTitle     String?
+  metaDesc      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}

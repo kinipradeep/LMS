@@ -1,0 +1,23 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Run these from the /backend directory
+# ─────────────────────────────────────────────────────────────────────────────
+
+# OAuth dependencies
+npm install passport passport-google-oauth20 passport-microsoft
+
+# Types
+npm install --save-dev @types/passport @types/passport-google-oauth20
+
+# Session (needed by passport for OAuth flow, even with JWT)
+npm install express-session
+npm install --save-dev @types/express-session
+
+# Rate limiting (for auth endpoints in Express)
+npm install express-rate-limit
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Run these from the /frontend directory
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Markdown/rich text for blog content
+npm install @tailwindcss/typography
