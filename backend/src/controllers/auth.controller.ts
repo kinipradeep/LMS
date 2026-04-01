@@ -11,17 +11,20 @@ export const signup = async (req: Request, res: Response) => {
   const passwordHash = await hashPassword(data.password);
   const user = await prisma.user.create({
     data: { name: data.name, email: data.email, passwordHash, role: 'STUDENT' }
-    data: { name: data.name, email: data.email, passwordHash, role: data.role ?? 'STUDENT' }
   });
 
   const token = signToken({ userId: user.id, role: user.role });
   return res.status(201).json({ token, user: { id: user.id, email: user.email, role: user.role } });
 };
 
+
 export const login = async (req: Request, res: Response) => {
   const data = loginSchema.parse(req.body);
   const user = await prisma.user.findUnique({ where: { email: data.email } });
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+
+  // OAuth-only users have no password — reject password login attempts
+  if (!user.passwordHash) return res.status(401).json({ message: 'Invalid credentials' });
 
   const ok = await verifyPassword(data.password, user.passwordHash);
   if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
@@ -29,6 +32,7 @@ export const login = async (req: Request, res: Response) => {
   const token = signToken({ userId: user.id, role: user.role });
   return res.json({ token, user: { id: user.id, email: user.email, role: user.role } });
 };
+
 
 export const me = async (req: Request, res: Response) => {
   const user = await prisma.user.findUnique({

@@ -40,6 +40,10 @@ export const paymentWebhook = async (req: Request, res: Response) => {
   const signature = req.headers['x-razorpay-signature'] as string | undefined;
   if (!signature) return res.status(400).json({ message: 'Missing signature' });
 
+  if (!env.razorpayWebhookSecret) {
+    return res.status(500).json({ message: 'Webhook secret not configured' });
+  }
+
   const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
   if (!rawBody) return res.status(400).json({ message: 'Missing raw webhook body' });
 
@@ -50,26 +54,28 @@ export const paymentWebhook = async (req: Request, res: Response) => {
 
   const digestBuffer = Buffer.from(digest, 'utf8');
   const signatureBuffer = Buffer.from(signature, 'utf8');
-  if (digestBuffer.length !== signatureBuffer.length || !crypto.timingSafeEqual(digestBuffer, signatureBuffer)) {
-  const body = JSON.stringify(req.body);
-  const digest = crypto
-    .createHmac('sha256', env.razorpayWebhookSecret)
-    .update(body)
-    .digest('hex');
-
-  if (digest !== signature) {
+  if (
+    digestBuffer.length !== signatureBuffer.length ||
+    !crypto.timingSafeEqual(digestBuffer, signatureBuffer)
+  ) {
     return res.status(400).json({ message: 'Invalid webhook signature' });
   }
 
   if (req.body.event === 'payment.captured') {
-    const paymentEntity = req.body.payload.payment.entity;
+    const paymentEntity = req.body.payload?.payment?.entity;
+    if (!paymentEntity?.order_id) {
+      return res.status(400).json({ message: 'Malformed payment event payload' });
+    }
+
     const updated = await prisma.payment.updateMany({
       where: { razorpayOrderId: paymentEntity.order_id },
       data: { status: 'PAID', razorpayPaymentId: paymentEntity.id }
     });
 
     if (updated.count > 0) {
-      const payment = await prisma.payment.findFirst({ where: { razorpayOrderId: paymentEntity.order_id } });
+      const payment = await prisma.payment.findFirst({
+        where: { razorpayOrderId: paymentEntity.order_id }
+      });
       if (payment) {
         await prisma.enrollment.upsert({
           where: { userId_courseId: { userId: payment.userId, courseId: payment.courseId } },

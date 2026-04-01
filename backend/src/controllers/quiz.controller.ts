@@ -34,5 +34,4 @@ export const submitQuiz = async (req: Request, res: Response) => {
     correct,
     canGenerateCertificate: score >= 70
   });
-  return res.json({ resultId: result.id, score, total: questions.length, correct });
 };

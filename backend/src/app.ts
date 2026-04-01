@@ -4,18 +4,26 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { ZodError } from 'zod';
 import { router } from './routes/index.js';
+import { env } from './config/env.js';
 
 export const app = express();
 
-app.use(cors());
+// Restrict CORS to known frontend origin(s) only
+app.use(cors({
+  origin: env.publicAppUrl,
+  credentials: true // needed if frontend reads the HttpOnly auth_token cookie
+}));
 app.use(helmet());
 app.use(morgan('dev'));
+
+// Single express.json() call with rawBody capture for webhook signature verification
+// and a 1MB payload size limit to guard against JSON bomb attacks
 app.use(express.json({
+  limit: '1mb',
   verify: (req, _res, buf) => {
     (req as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(buf);
   }
 }));
-app.use(express.json());
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true });

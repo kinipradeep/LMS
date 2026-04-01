@@ -2,9 +2,13 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required but not set. Refusing to start.');
+}
+
 export const env = {
   port: Number(process.env.PORT ?? 4000),
-  jwtSecret: process.env.JWT_SECRET ?? 'replace-me',
+  jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   razorpayKeyId: process.env.RAZORPAY_KEY_ID ?? '',
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET ?? '',
@@ -16,5 +20,4 @@ export const env = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
   claudeModel: process.env.CLAUDE_MODEL ?? 'claude-3-5-sonnet-latest',
   publicAppUrl: process.env.PUBLIC_APP_URL ?? 'http://localhost:3000'
-  claudeModel: process.env.CLAUDE_MODEL ?? 'claude-3-5-sonnet-latest'
 };

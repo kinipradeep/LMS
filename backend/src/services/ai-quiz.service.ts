@@ -45,10 +45,13 @@ async function callOpenAI(prompt: string) {
 
 async function callGemini(prompt: string) {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${env.geminiModel}:generateContent?key=${env.geminiApiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${env.geminiModel}:generateContent`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': env.geminiApiKey  // Key in header, not URL query string
+      },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     }
   );

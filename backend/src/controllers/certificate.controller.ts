@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { prisma } from '../config/db.js';
 import { env } from '../config/env.js';
 import { buildCertificateSchema } from '../utils/validators.js';
@@ -7,7 +7,7 @@ import { buildCertificateSchema } from '../utils/validators.js';
 const PASSING_SCORE = 70;
 
 const createCertificateNo = () => {
-  const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const random = randomBytes(3).toString('hex').toUpperCase(); // 6 crypto-random hex chars
   return `CYBER-${new Date().getUTCFullYear()}-${random}`;
 };
 
