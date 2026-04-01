@@ -9,7 +9,9 @@ set -euo pipefail
 
 DOMAIN="${DOMAIN:-yourdomain.com}"
 DB_PASSWORD="${DB_PASSWORD:-$(openssl rand -hex 16)}"
-REPO="https://ghp_YOURTOKEN@github.com/kinipradeep/LMS.git"
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
+REPO_PATH="kinipradeep/LMS"
+REPO="https://${GITHUB_TOKEN:+${GITHUB_TOKEN}@}github.com/${REPO_PATH}.git"
 APP_DIR="/var/www/lms"
 NODE_VERSION="20"
 
@@ -96,10 +98,11 @@ GEMINI_API_KEY=
 ANTHROPIC_API_KEY=
 EOF
 
-npm install --production
+npm install
+npm run build
 npx prisma generate
 npx prisma migrate deploy
-npx ts-node prisma/seed-certifications.ts || echo "  ⚠️  Seed skipped (may already exist)"
+npx tsx prisma/seed-certifications.ts || echo "  ⚠️  Seed skipped (may already exist)"
 
 # ── 10. Frontend setup ────────────────────────────────────────────────────────
 echo "→ Setting up frontend..."
